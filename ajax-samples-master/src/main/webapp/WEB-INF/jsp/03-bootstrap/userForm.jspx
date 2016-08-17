@@ -1,0 +1,96 @@
+<html xmlns:c="http://java.sun.com/jsp/jstl/core"  
+xmlns:spring="http://www.springframework.org/tags" 
+xmlns:jsp="http://java.sun.com/JSP/Page" xmlns:form="http://www.springframework.org/tags/form">
+
+	<jsp:output doctype-root-element="HTML" doctype-system="about:legacy-compat" />
+	<jsp:directive.page contentType="text/html;charset=UTF-8" />  
+	
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1"/>
+		<title>Add User</title> 
+		
+		<spring:url value="/bootstrap/css/bootstrap.min.css" var="bootstrapUrl" />
+		<link href="${bootstrapUrl}" rel="stylesheet"/>
+		
+		<spring:url value="/js/jquery.js" var="jqueryUrl" />
+		<![CDATA[<script src="${jqueryUrl}"></script>]]>
+	</head>
+	<body>
+
+		<div class="container" style="padding-top: 50px;">
+			<jsp:include page="../menu.jspx"/>
+										
+			<spring:url value="/userAjaxBootstrap.htm" var="formUrl" />
+			<spring:url value="/userAjaxBootstrap.json" var="formJsonUrl" />
+	
+			<!-- Bootstrap form -->
+			<form:form modelAttribute="user" class="form-horizontal"
+				id="add-user-form" action="${formUrl}">
+				<fieldset>
+					<div class="control-group" id="firstName">
+						<label class="control-label">First name</label>
+						<div class="controls">
+							<form:input path="firstName" />
+							<span class="help-inline"><form:errors path="firstName" /></span>
+						</div>
+					</div>
+					<div class="control-group" id="lastName">
+						<label class="control-label">Last name</label>
+						<div class="controls">
+							<form:input path="lastName" />
+							<span class="help-inline"><form:errors path="lastName" /></span>
+						</div>
+					</div>
+					<div class="form-actions">
+						<button type="submit" class="btn btn-primary">Save changes</button>
+						<button type="reset" class="btn">Cancel</button>
+					</div>
+				</fieldset>
+			</form:form>
+	
+		</div>
+	
+		<script type="text/javascript">
+		<![CDATA[function collectFormData(fields) {
+				var data = {};
+				for (var i = 0; i < fields.length; i++) {
+					var $item = $(fields[i]);
+					data[$item.attr('name')] = $item.val();
+				}
+				return data;
+			}
+				
+			$(document).ready(function() {
+				var $form = $('#add-user-form');
+				$form.bind('submit', function(e) {
+					// Ajax validation
+					var $inputs = $form.find('input');
+					var data = collectFormData($inputs);
+					
+					$.post('${formJsonUrl}', data, function(response) {
+						$form.find('.control-group').removeClass('error');
+						$form.find('.help-inline').empty();
+						$form.find('.alert').remove();
+						
+						if (response.status == 'FAIL') {
+							for (var i = 0; i < response.errorMessageList.length; i++) {
+								var item = response.errorMessageList[i];
+								var $controlGroup = $('#' + item.fieldName);
+								$controlGroup.addClass('error');
+								$controlGroup.find('.help-inline').html(item.message);
+							}
+						} else {
+							$form.unbind('submit');
+							$form.submit();
+						}
+					}, 'json');
+					
+					e.preventDefault();
+					return false;
+				});
+			});
+			]]>
+		</script>
+
+	</body>
+</html>
