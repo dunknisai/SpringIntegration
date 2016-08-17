@@ -1,2 +1,2 @@
 # SpringIntegration
-Examples of Srping Integration
+Examples of Spring Integration
