@@ -1,11 +1,32 @@
 package com.hellokoding.account.model;
 
 import javax.persistence.*;
+
+import org.springframework.security.core.GrantedAuthority;
+
 import java.util.Set;
 
 @Entity
 @Table(name = "role")
 public class Role {
+	
+	public enum NOMBRE_ROL implements GrantedAuthority
+	{
+	    USER("ROLE_USER"),
+	    ADMIN("ROLE_ADMIN");
+
+	    private String authority;
+
+	    NOMBRE_ROL(String authority)
+	    {
+	        this.authority = authority;
+	    }
+	    public String getAuthority()
+	    {
+	        return this.authority;
+	    }
+	}
+	
     private Long id;
     private String name;
     private Set<User> users;
