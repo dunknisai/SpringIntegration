@@ -52,12 +52,12 @@ angular.module('exampleApp', ['ngRoute', 'ngCookies', 'exampleApp.services'])
 		        return {
 		        	'request': function(config) {
 		        		var isRestCall = config.url.indexOf('rest') == 0;
-		        		if (isRestCall && angular.isDefined($rootScope.accessToken)) {
-		        			var accessToken = $rootScope.accessToken;
-		        			if (exampleAppConfig.useAccessTokenHeader) {
-		        				config.headers['X-Access-Token'] = accessToken;
+		        		if (isRestCall && angular.isDefined($rootScope.authToken)) {
+		        			var authToken = $rootScope.authToken;
+		        			if (exampleAppConfig.useAuthTokenHeader) {
+		        				config.headers['X-Auth-Token'] = authToken;
 		        			} else {
-		        				config.url = config.url + "?token=" + accessToken;
+		        				config.url = config.url + "?token=" + authToken;
 		        			}
 		        		}
 		        		return config || $q.when(config);
@@ -90,17 +90,17 @@ angular.module('exampleApp', ['ngRoute', 'ngCookies', 'exampleApp.services'])
 		
 		$rootScope.logout = function() {
 			delete $rootScope.user;
-			delete $rootScope.accessToken;
-			$cookieStore.remove('accessToken');
+			delete $rootScope.authToken;
+			$cookieStore.remove('authToken');
 			$location.path("/login");
 		};
 		
 		 /* Try getting valid user from cookie or go to login page */
 		var originalPath = $location.path();
 		$location.path("/login");
-		var accessToken = $cookieStore.get('accessToken');
-		if (accessToken !== undefined) {
-			$rootScope.accessToken = accessToken;
+		var authToken = $cookieStore.get('authToken');
+		if (authToken !== undefined) {
+			$rootScope.authToken = authToken;
 			UserService.get(function(user) {
 				$rootScope.user = user;
 				$location.path(originalPath);
@@ -111,36 +111,36 @@ angular.module('exampleApp', ['ngRoute', 'ngCookies', 'exampleApp.services'])
 	});
 
 
-function IndexController($scope, BlogPostService) {
-
-	$scope.blogPosts = BlogPostService.query();
-
-	$scope.deletePost = function (blogPost) {
-		blogPost.$remove(function () {
-			$scope.blogPosts = BlogPostService.query();
+function IndexController($scope, NewsService) {
+	
+	$scope.newsEntries = NewsService.query();
+	
+	$scope.deleteEntry = function(newsEntry) {
+		newsEntry.$remove(function() {
+			$scope.newsEntries = NewsService.query();
 		});
 	};
-}
+};
 
 
-function EditController($scope, $routeParams, $location, BlogPostService) {
+function EditController($scope, $routeParams, $location, NewsService) {
 
-	$scope.blogPost = BlogPostService.get({id: $routeParams.id});
+	$scope.newsEntry = NewsService.get({id: $routeParams.id});
 	
 	$scope.save = function() {
-		$scope.blogPost.$save(function () {
+		$scope.newsEntry.$save(function() {
 			$location.path('/');
 		});
 	};
-}
+};
 
 
-function CreateController($scope, $location, BlogPostService) {
-	console.log("$scope=>"+$scope);
-	$scope.blogPost = new BlogPostService();
+function CreateController($scope, $location, NewsService) {
+	
+	$scope.newsEntry = new NewsService();
 	
 	$scope.save = function() {
-		$scope.blogPost.$save(function () {
+		$scope.newsEntry.$save(function() {
 			$location.path('/');
 		});
 	};
@@ -153,12 +153,15 @@ function LoginController($scope, $rootScope, $location, $cookieStore, UserServic
 	
 	$scope.login = function() {
 		UserService.authenticate($.param({username: $scope.username, password: $scope.password}), function(authenticationResult) {
-			var accessToken = authenticationResult.token;
-			$rootScope.accessToken = accessToken;
+			var authToken = authenticationResult.token;
+			console.log("authToken="+authToken);
+			console.log("authenticationResult="+authenticationResult);
+			$rootScope.authToken = authToken;
 			if ($scope.rememberMe) {
-				$cookieStore.put('accessToken', accessToken);
+				$cookieStore.put('authToken', authToken);
 			}
 			UserService.get(function(user) {
+				console.log("user="+user);
 				$rootScope.user = user;
 				$location.path("/");
 			});
@@ -177,12 +180,12 @@ services.factory('UserService', function($resource) {
 					method: 'POST',
 					params: {'action' : 'authenticate'},
 					headers : {'Content-Type': 'application/x-www-form-urlencoded'}
-				}
+				},
 			}
 		);
 });
 
-services.factory('BlogPostService', function ($resource) {
-
-	return $resource('rest/blogposts/:id', {id: '@id'});
+services.factory('NewsService', function($resource) {
+	
+	return $resource('rest/news/:id', {id: '@id'});
 });

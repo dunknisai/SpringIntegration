@@ -26,12 +26,17 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
 
+import com.hellokoding.account.service.SecurityService;
+
 
 @Component
 @Path("/user")
 public class UserResource
 {
 
+	@Autowired
+    private SecurityService securityService;
+	
 	@Autowired
 	private UserDetailsService userService;
 
@@ -83,8 +88,7 @@ public class UserResource
 		 * Reload user as password of authentication principal will be null after authorization and
 		 * password is needed for token generation
 		 */
-		UserDetails userDetails = this.userService.loadUserByUsername(username);
-
+		UserDetails userDetails = securityService.autologinDetails(username, password);
 		return new TokenTransfer(TokenUtils.createToken(userDetails));
 	}
 

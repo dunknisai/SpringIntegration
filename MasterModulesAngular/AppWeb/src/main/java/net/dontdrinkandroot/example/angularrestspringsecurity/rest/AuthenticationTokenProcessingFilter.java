@@ -53,7 +53,7 @@ public class AuthenticationTokenProcessingFilter extends GenericFilterBean
 	private HttpServletRequest getAsHttpRequest(ServletRequest request)
 	{
 		if (!(request instanceof HttpServletRequest)) {
-			throw new RuntimeException("Expecting an HTTP request");
+			throw new ApplicationException("Expecting an HTTP request");
 		}
 
 		return (HttpServletRequest) request;
@@ -71,4 +71,18 @@ public class AuthenticationTokenProcessingFilter extends GenericFilterBean
 
 		return authToken;
 	}
+}
+
+class ApplicationException extends RuntimeException
+{
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	public ApplicationException(String message) {
+		  super(message);
+	}
+
+
 }
